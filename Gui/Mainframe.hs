@@ -35,11 +35,31 @@ mainCallBack = do
         menuLine editMenuPane
 	eUndo <- menuItem editMenuPane [text := "&Undo\tCtrl+Z", help := "Undo last action"]
 	eRedo <- menuItem  editMenuPane [ text := "&Redo\tCtrl+Y",  help := "Redo last action"]
-   
+        
+	--Search
+	
+	searchMenuPane <- menuPane [text := "&Search"]
+	sFind <- menuItem searchMenuPane [text := "&Find\tCtrl+F", help := "Find"]	
+	sReplace <- menuItem searchMenuPane [text := "&Replace\tCtrl+H", help := "Replace"]
+	
+	--Run	
+	runMenuPane <- menuPane [text := "&Run"]
+	rRunGhci <- menuItem runMenuPane [text := "&Run in ghci\tCtrl+G", help := "Run in ghci"]	
+	rCompile <- menuItem runMenuPane [text := "&Compile\tCtrl+K", help := "Compile"]
+ 	rCompileAndRun <- menuItem runMenuPane [text := "&Compile and Run\tCtrl+Shift+R", help := "Compile and Run"]
+	
+	--Help 
+
+	helpMenuPane <- menuPane [text := "&Help"]
+ 	hHelp <- menuItem helpMenuPane [text := "&Help\tF1", help := "Help"]
+	hAbout <- menuItem helpMenuPane [text := "&About", help := "About"]	
+
+	
+
 	set fQuit [ on command := close hkFrame]
         set sQuit [ on command := close hkFrame]
 	
-	set hkFrame [ menuBar := [fileMenuPane,editMenuPane]]
+	set hkFrame [ menuBar := [fileMenuPane, editMenuPane, searchMenuPane, runMenuPane, helpMenuPane]]
 	set hkFrame [statusBar := [hkStatusBar],layout := minsize (sz width height) $ column 5 [floatCenter (widget hkLabel)]] -- Gui layout
  
 
