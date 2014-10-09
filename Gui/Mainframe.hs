@@ -3,18 +3,25 @@ module Gui.Mainframe
 
 import Graphics.UI.WX
 
-width = 450
-height = 400
+width = 640
+height = 480
 
 mainCallBack :: IO ()
 mainCallBack = do
 	
-	hkFrame <- frame [text:="Haskulus IDE", resizeable:=True]   --Container Frame
+	-- Container Frame
+	hkFrame <- frame [text:="Haskulus IDE", resizeable:=True]
 	
-	hkLabel <- staticText hkFrame [text := "Label"]  -- Temporary Label
+	--Panels
+	pTPanel <-panel hkFrame []  --pt stand for Project Tree
+	
+	--Other widgets
+	
+	pTLabel <- staticText pTPanel [text := "Projects"]  -- Temporary Label
 	
 	hkStatusBar <- statusField [text := "Haskell"]  -- Status Bar
 
+	--MenuBar
 	--File, Edit, Search, Run, Help
 	--File
 	fileMenuPane <- menuPane [text := "&File"]
@@ -54,12 +61,23 @@ mainCallBack = do
  	hHelp <- menuItem helpMenuPane [text := "&Help\tF1", help := "Help"]
 	hAbout <- menuItem helpMenuPane [text := "&About", help := "About"]	
 
+
+	--Text area
+	hkTextEditor <- textCtrl hkFrame [text := "module Main where \n\n main :: IO() \nmain = putStrLn \"Hello World\" "] 
 	
+	--Events
 
 	set fQuit [ on command := close hkFrame]
 
 	
+	
+	--GUI layout
+	set pTPanel [bgcolor:=white,
+		     layout := column 5 [floatCenter (widget pTLabel)],
+		     clientSize := sz 100 height
+		    ]
 	set hkFrame [ menuBar := [fileMenuPane, editMenuPane, searchMenuPane, runMenuPane, helpMenuPane]]
-	set hkFrame [statusBar := [hkStatusBar],layout := minsize (sz width height) $ column 5 [floatCenter (widget hkLabel)]] -- Gui layout
+	set hkFrame [statusBar := [hkStatusBar]]
+	set hkFrame [layout := minsize (sz width height) $ row  5 [fill (widget pTPanel),fill (widget hkTextEditor)]] 
  
 
