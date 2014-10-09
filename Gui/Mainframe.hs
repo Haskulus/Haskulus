@@ -24,7 +24,7 @@ mainCallBack = do
 	fSaveAs <- menuItem fileMenuPane [text := "&Save As\tCtrl+Shift+S", help := "Save as"]
         menuLine fileMenuPane
 	fQuit <- menuItem  fileMenuPane [ text := "&Quit\tCtrl+Q",  help := "Quit the IDE"]
-        sQuit <- menuQuit fileMenuPane [ help := "Quit the IDE"]
+
 	
 	--Edit
 	
@@ -57,7 +57,7 @@ mainCallBack = do
 	
 
 	set fQuit [ on command := close hkFrame]
-        set sQuit [ on command := close hkFrame]
+
 	
 	set hkFrame [ menuBar := [fileMenuPane, editMenuPane, searchMenuPane, runMenuPane, helpMenuPane]]
 	set hkFrame [statusBar := [hkStatusBar],layout := minsize (sz width height) $ column 5 [floatCenter (widget hkLabel)]] -- Gui layout
