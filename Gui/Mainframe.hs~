@@ -2,9 +2,35 @@ module Gui.Mainframe
 	where
 
 import Graphics.UI.WX
+import Graphics.UI.WXCore
+import System.IO
 
 width = 640
 height = 480
+
+onClickSave frame textEditor = do
+	     maybePath <-fileSaveDialog frame True False "Save File..."
+	     		 [("Haskell file(*.hs)",["*.hs"])] "" ""
+             case maybePath of
+             		Nothing  -> return ()
+             		Just path -> do 
+             			     textCtrlSaveFile textEditor path
+             			     putStrLn ""
+             		
+
+onClickOpen frame textEditor= do
+	     maybePath <-fileOpenDialog frame True False "Open File..."
+	     		 [("Haskell file(*.hs)",["*.hs"]),("All files",["*.*"])] "" ""
+             case maybePath of
+             		Nothing  -> return ()
+             		Just path -> onOpen path textEditor
+
+--onOpen :: String -> IO (TextCtrl ()) -> IO ()
+onOpen path textEditor= do
+		handle <- openFile path ReadMode
+		contents <- hGetContents handle
+		set textEditor [text := contents]
+		hClose handle
 
 mainCallBack :: IO ()
 mainCallBack = do
@@ -13,13 +39,12 @@ mainCallBack = do
 	hkFrame <- frame [text:="Haskulus IDE", resizeable:=True]
 	
 	--Panels
-	pTPanel <-panel hkFrame []  --pt stand for Project Tree
-	
+	pTPanel <-panel hkFrame []  --pt stands for Project Tree
+	tBPanel <-panel hkFrame [] -- tB stands for task bar
 	--Other widgets
-	
-	pTLabel <- staticText pTPanel [text := "Projects"]  -- Temporary Label
-	
+	pTLabel <- staticText pTPanel [text := "Projects\t\t\t\t\t",visible:=True]  -- Temporary Label
 	hkStatusBar <- statusField [text := "Haskell"]  -- Status Bar
+	tBRun <- button tBPanel [text := "Run"]
 
 	--MenuBar
 	--File, Edit, Search, Run, Help
@@ -66,26 +91,28 @@ mainCallBack = do
 	hkTextEditor <- textCtrl hkFrame [text := "module Main where \n\n main :: IO() \nmain = putStrLn \"Hello World\" "] 
 	
 	--Events
-
+	set fSave [ on command := onClickSave hkFrame hkTextEditor]
 	set fQuit [ on command := close hkFrame]
-
+	set fOpen [ on command := onClickOpen hkFrame hkTextEditor]
 	
 	
 	--GUI layout
 	set pTPanel [bgcolor:=white,
-		     layout := column 5 [floatCenter (widget pTLabel)],
-		     clientSize := sz 100 height
+		    layout := column 5 [fill (widget pTLabel)],
+		    visible:=True
 		    ]
-	set hkFrame [ menuBar := [fileMenuPane, editMenuPane, searchMenuPane, runMenuPane, helpMenuPane]]
-	set hkFrame [statusBar := [hkStatusBar],
-		     clientSize := sz width height]
-		     
-	set pTPanel [bgcolor:=white,
-		     layout := column 5 [floatCenter (widget pTLabel)],
-		     clientSize := sz 100 height,
-		     position := pt 2 2
-		    ]
+	set tBPanel [layout := row 5 [vfill (widget tBRun)],bgcolor:=lightgrey]
 		    
-	set hkFrame [layout := row 5 [fill (widget pTPanel),fill (widget hkTextEditor)]] 
- 
+	set hkFrame [ menuBar := [fileMenuPane, editMenuPane, searchMenuPane, runMenuPane, helpMenuPane]]
+	set hkFrame [statusBar := [hkStatusBar],bgcolor:=lightgrey]
+	set hkFrame [layout := minsize (sz width height) $ column 5 [hfill (widget tBPanel), 
+								     row  5 [vfill (widget pTPanel),fill 									    (widget hkTextEditor)]],visible :=True] 
+								     
+								     
+								
+								
+--onClickSave::IO ()
+
+		
+    
 
