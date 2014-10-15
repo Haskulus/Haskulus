@@ -4,37 +4,62 @@ module Gui.Mainframe
 import Graphics.UI.WX
 import Graphics.UI.WXCore
 import System.IO
-
+import System.Process
+import System.Exit
 width = 640
 height = 480
 
-onClickSave frame textEditor = do
+--Global Variables
+
+
+
+onClickSave frame textEditor  filePath = do
 	     maybePath <-fileSaveDialog frame True False "Save File..."
 	     		 [("Haskell file(*.hs)",["*.hs"])] "" ""
              case maybePath of
              		Nothing  -> return ()
              		Just path -> do 
              			     textCtrlSaveFile textEditor path
-             			     putStrLn ""
+				     varSet filePath $ Just path	
              		
 
-onClickOpen frame textEditor= do
+onClickOpen frame textEditor filePath = do
 	     maybePath <-fileOpenDialog frame True False "Open File..."
 	     		 [("Haskell file(*.hs)",["*.hs"]),("All files",["*.*"])] "" ""
              case maybePath of
              		Nothing  -> return ()
-             		Just path -> onOpen path textEditor
+             		Just path -> do
+				     textCtrlLoadFile textEditor path
+				     varSet filePath $ Just path
+				     print path
+
+
+compileRun varGetPath = do
+			maybePath <- varGet varGetPath
+		       	case maybePath of
+			   Nothing -> return ()
+			   Just path -> do
+					pid<-runCommand ("ghc "++path)
+					waitForProcess pid 
+					pid2 <-runCommand ("./"++(fst $ splitAt ((length path) -3) path))
+					waitForProcess pid2 >>= exitWith
+		       			putStrLn ""
+			putStrLn ""
 
 --onOpen :: String -> IO (TextCtrl ()) -> IO ()
-onOpen path textEditor= do
+{-onOpen path textEditor= do
 		handle <- openFile path ReadMode
 		contents <- hGetContents handle
 		set textEditor [text := contents]
-		hClose handle
+		hClose handle -}
+
 
 mainCallBack :: IO ()
 mainCallBack = do
 	
+	--Mutable Variables
+	filePath <- varCreate $ Just "/"
+
 	-- Container Frame
 	hkFrame <- frame [text:="Haskulus IDE", resizeable:=True]
 	
@@ -44,7 +69,7 @@ mainCallBack = do
 	--Other widgets
 	pTLabel <- staticText pTPanel [text := "Projects\t\t\t\t\t",visible:=True]  -- Temporary Label
 	hkStatusBar <- statusField [text := "Haskell"]  -- Status Bar
-	tBRun <- button tBPanel [text := "Run"]
+	tBCompileRun <- button tBPanel [text := "Compile & Run"]
 
 	--MenuBar
 	--File, Edit, Search, Run, Help
@@ -91,17 +116,17 @@ mainCallBack = do
 	hkTextEditor <- textCtrl hkFrame [text := "module Main where \n\n main :: IO() \nmain = putStrLn \"Hello World\" "] 
 	
 	--Events
-	set fSave [ on command := onClickSave hkFrame hkTextEditor]
+	set fSave [ on command := onClickSave hkFrame hkTextEditor filePath]
 	set fQuit [ on command := close hkFrame]
-	set fOpen [ on command := onClickOpen hkFrame hkTextEditor]
-	
+	set fOpen [ on command := onClickOpen hkFrame hkTextEditor filePath]
+	set tBCompileRun [ on command := compileRun filePath ]	
 	
 	--GUI layout
 	set pTPanel [bgcolor:=white,
 		    layout := column 5 [fill (widget pTLabel)],
 		    visible:=True
 		    ]
-	set tBPanel [layout := row 5 [vfill (widget tBRun)]]
+	set tBPanel [layout := row 5 [vfill (widget tBCompileRun)]]
 		    
 	set hkFrame [ menuBar := [fileMenuPane, editMenuPane, searchMenuPane, runMenuPane, helpMenuPane]]
 	set hkFrame [statusBar := [hkStatusBar]]
